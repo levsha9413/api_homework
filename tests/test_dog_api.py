@@ -845,15 +845,93 @@ def test_dogs_image_scheme():
 
 
 @pytest.mark.parametrize('count_in_request, count_images',
-                         [('2', 1),
+                         [('0', 1),
                           ('1', 1),
                           ('25', 25),
                           ('50', 50),
-                          ('51', 51)])
+                          ('51', 50),
+                          ('100', 50)])
 def test_count_dogs_images(count_in_request, count_images):
     '''
     Проверка колличества возвращаемых изображений
     '''
     res = requests.get(f"https://dog.ceo/api/breeds/image/random/{count_in_request}")
-    images = res.content
-    images.count()
+    body = res.json()
+    assert len(body["message"]) == count_images
+
+
+'''
+Тесты для эндпоинта https://dog.ceo/api/breed/hound/images
+'''
+
+
+def test_count_images_by_breed():
+    '''
+    Проверка колличества всех возвращаемых изображений
+    '''
+    res = requests.get("https://dog.ceo/api/breed/hound/images")
+    body = res.json()
+    assert len(body["message"]) == 1000
+
+
+def test_schema_random_images_by_breed():
+    '''
+    Проверка схемы ответа
+    '''
+
+    res = requests.get("https://dog.ceo/api/breed/hound/images/random")
+    schema = {
+        "type": "object",
+        "properties": {
+            "message": {
+                "type": "string"
+            },
+            "status": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "message",
+            "status"
+        ]
+    }
+
+    assert validate(res.json(), schema) == None
+
+
+@pytest.mark.parametrize('count_in_request, count_images',
+                         [('0', 1),
+                          ('1', 1),
+                          ('25', 25),
+                          ('50', 50),
+                          ('51', 51),
+                          ('100', 100)])
+def test_count_dogs_images_random_by_breed(count_in_request, count_images):
+    '''
+    Проверка колличества возвращаемых изображений
+    '''
+    res = requests.get(f"https://dog.ceo/api/breed/hound/images/random/{count_in_request}")
+    body = res.json()
+    assert len(body["message"]) == count_images
+
+
+'''
+Тесты для эндпоинта https://dog.ceo/api/breed/hound/list
+'''
+
+
+@pytest.mark.parametrize('sub_breed, count_images',
+                         [("afghan", 239),
+                          ("basset", 175),
+                          ("blood", 187),
+                          ("english", 157),
+                          ("ibizan", 188),
+                          ("plott", 2),
+                          ("walker", 153)])
+def test_count_dogs_images_by_sub_breed(sub_breed, count_images):
+    '''
+    Проверка колличества возвращаемых изображений для разных пород
+    '''
+    res = requests.get(f"https://dog.ceo/api/breed/hound/{sub_breed}/images")
+    body = res.json()
+    assert len(body["message"]) == count_images
